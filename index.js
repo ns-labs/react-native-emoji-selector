@@ -253,7 +253,7 @@ export default class EmojiSelector extends Component {
       this.prerenderEmojis(() => {
         this.setState({ isReady: true });
       });
-    })
+    });
   };
 
   //
