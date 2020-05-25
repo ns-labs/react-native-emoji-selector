@@ -127,7 +127,9 @@ export default class EmojiSelector extends Component {
     history: [],
     emojiList: null,
     colSize: 0,
-    width: 0
+    width: 0,
+    numberOfEmogi: 0, //to decide number of emogis in row
+    myEmogiSelection: null //for array of emogis to display
   };
 
   //
@@ -148,7 +150,7 @@ export default class EmojiSelector extends Component {
     if (this.props.showHistory) {
       this.addToHistoryAsync(emoji);
     }
-    this.props.onEmojiSelected(charFromEmojiObject(emoji));
+    this.props.onEmojiSelected(charFromEmojiObject(emoji), emoji); //emogis data added here
   };
 
   handleSearch = searchQuery => {
@@ -200,7 +202,7 @@ export default class EmojiSelector extends Component {
   );
 
   returnSectionData() {
-    const { history, emojiList, searchQuery, category } = this.state;
+    const { history, emojiList, searchQuery, category, numberOfEmogi, myEmogiSelection } = this.state;
     if (category === Categories.all && searchQuery === "") {
       //TODO: OPTIMIZE THIS
       let largeList = [];
@@ -227,7 +229,29 @@ export default class EmojiSelector extends Component {
         list = sortEmoji(filtered);
       } else if (name === Categories.history.name) {
         list = history;
-      } else {
+      }else if(!myEmogiSelection && numberOfEmogi && numberOfEmogi > 0){
+        //normal filteration method for emogis
+        list = emojiList[name].slice(0,numberOfEmogi);
+      }
+      else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmogi && numberOfEmogi > 0){
+        //emogi filterations from custom array
+        const filtered = emoji.filter(e => {
+          let display = false;
+          e.short_names.forEach(name => {
+            myEmogiSelection.filter(a => {
+              a.short_names.forEach(n => {
+                if (name.includes(n)) 
+                {
+                  display = true;
+                }
+              })
+            })
+          });
+          return display;
+        });
+        list = sortEmoji(filtered).slice(0,numberOfEmogi);
+      }
+      else {
         list = emojiList[name];
       }
       return list.map(emoji => ({ key: emoji.unified, emoji }));
@@ -262,8 +286,8 @@ export default class EmojiSelector extends Component {
   //  LIFECYCLE METHODS
   //
   componentDidMount() {
-    const { category, showHistory } = this.props;
-    this.setState({ category });
+    const { category, showHistory, numberOfEmogi, myEmogiSelection } = this.props;
+    this.setState({ category, numberOfEmogi, myEmogiSelection });
 
     if (showHistory) {
       this.loadHistoryAsync();
@@ -279,6 +303,8 @@ export default class EmojiSelector extends Component {
       showSearchBar,
       showSectionTitles,
       showTabs,
+      scrollHorizontal,
+      scrollEnabled,
       ...other
     } = this.props;
 
@@ -326,11 +352,12 @@ export default class EmojiSelector extends Component {
                   contentContainerStyle={{ paddingBottom: colSize }}
                   data={this.returnSectionData()}
                   renderItem={this.renderEmojiCell}
-                  horizontal={false}
-                  numColumns={columns}
+                  numColumns={ scrollHorizontal ? 1 : columns}
                   keyboardShouldPersistTaps={"always"}
                   ref={scrollview => (this.scrollview = scrollview)}
                   removeClippedSubviews
+                  horizontal={scrollHorizontal ? true : false}
+                  scrollEnabled={scrollEnabled}
                 />
               </View>
             </View>
@@ -356,13 +383,18 @@ EmojiSelector.defaultProps = {
   showHistory: false,
   showSectionTitles: true,
   columns: 6,
-  placeholder: "Search..."
+  placeholder: "Search...",
+  scrollHorizontal: false,
+  numberOfEmogi: null,
+  myEmogiSelection: false,
+  scrollEnabled: true
 };
 
 const styles = StyleSheet.create({
   frame: {
-    flex: 1,
-    width: "100%"
+    // flex: 1,
+    height: '18%',
+    width: "100%",
   },
   loader: {
     flex: 1,
