@@ -101,11 +101,11 @@ const TabBar = ({ theme, activeCategory, onPress, width }) => {
   });
 };
 
-const EmojiCell = ({ emoji, colSize, ...other }) => (
+const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
   <TouchableOpacity
     activeOpacity={0.5}
     style={{
-      width: colSize,
+      width: colSize + reduceEmojiSizeBy,
       height: colSize,
       alignItems: "center",
       justifyContent: "center"
@@ -129,7 +129,8 @@ export default class EmojiSelector extends Component {
     colSize: 0,
     width: 0,
     numberOfEmogi: 0, //to decide number of emogis in row
-    myEmogiSelection: null //for array of emogis to display
+    myEmogiSelection: null, //for array of emogis to display,
+    reduceEmojiSizeBy: 0 // to adjust Emogi size
   };
 
   //
@@ -198,6 +199,7 @@ export default class EmojiSelector extends Component {
       emoji={item.emoji}
       onPress={() => this.handleEmojiSelect(item.emoji)}
       colSize={this.state.colSize}
+      reduceEmojiSizeBy={this.state.reduceEmojiSizeBy}
     />
   );
 
@@ -268,7 +270,8 @@ export default class EmojiSelector extends Component {
     this.setState(
       {
         emojiList,
-        colSize: Math.floor(this.state.width / this.props.columns)
+        colSize: Math.floor((this.state.width / this.props.columns)-(this.props.reduceEmojiSizeBy)),
+        reduceEmojiSizeBy: Math.floor(this.props.reduceEmojiSizeBy)
       },
       callback
     );
@@ -308,7 +311,7 @@ export default class EmojiSelector extends Component {
       ...other
     } = this.props;
 
-    const { category, colSize, isReady, searchQuery } = this.state;
+    const { category, colSize, isReady, searchQuery, reduceEmojiSizeBy } = this.state;
 
     const Searchbar = (
       <View style={styles.searchbar_container}>
@@ -387,7 +390,8 @@ EmojiSelector.defaultProps = {
   scrollHorizontal: false,
   numberOfEmogi: null,
   myEmogiSelection: false,
-  scrollEnabled: true
+  scrollEnabled: true,
+  reduceEmojiSizeBy: 0
 };
 
 const styles = StyleSheet.create({
