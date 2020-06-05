@@ -101,12 +101,12 @@ const TabBar = ({ theme, activeCategory, onPress, width }) => {
   });
 };
 
-const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
+const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, renderValueStyle, renderValues,  ...other }) => (
   <TouchableOpacity
     activeOpacity={0.5}
     style={{
       width: colSize + reduceEmojiSizeBy,
-      height: colSize,
+      height: colSize + (renderValues ? 15 : 0), // to handle height of view
       alignItems: "center",
       justifyContent: "center"
     }}
@@ -115,6 +115,12 @@ const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
     <Text style={{ color: "#FFFFFF", fontSize: colSize - 12 }}>
       {charFromEmojiObject(emoji)}
     </Text>
+    {/* added value under the emojis */}
+    {renderValues && (
+      <Text maxFontSizeMultiplier={1.1} style={emoji["selected"] == true ? renderValueStyle.ratingtextSelected : renderValueStyle.ratingtext}>
+        {`${emoji["value"]}`}
+      </Text>
+    )}
   </TouchableOpacity>
 );
 
@@ -147,11 +153,36 @@ export default class EmojiSelector extends Component {
     }
   };
 
-  handleEmojiSelect = emoji => {
+  handleEmojiSelect = (emoji, renderValues) => {
+
+    //to save emogi in history
     if (this.props.showHistory) {
       this.addToHistoryAsync(emoji);
     }
-    this.props.onEmojiSelected(charFromEmojiObject(emoji), emoji); //emogis data added here
+
+    //to handle selected value as per myEmogiSelection array
+    if (renderValues && emoji && emoji.hasOwnProperty("selected") && emoji.hasOwnProperty("value")) {
+      this.state.myEmogiSelection.filter(e => {
+        if (e["name"].includes(emoji["name"])) {
+          if (e["selected"] == true) {
+            e["selected"] = false
+            e["value"] -= 1
+          } else {
+            e["selected"] = true
+            e["value"] += 1
+          }
+        } else {
+          if (e["selected"] == true) {
+            e["selected"] = false
+            e["value"] -= 1
+          }
+        }
+      })
+    }
+
+    // sending value from lib to code
+    this.props.onEmojiSelected(charFromEmojiObject(emoji), emoji, this.state.myEmogiSelection); //emogis data added here, updated array also send if needed
+
   };
 
   handleSearch = searchQuery => {
@@ -197,9 +228,11 @@ export default class EmojiSelector extends Component {
     <EmojiCell
       key={item.key}
       emoji={item.emoji}
-      onPress={() => this.handleEmojiSelect(item.emoji)}
+      onPress={() => this.handleEmojiSelect(item.emoji, this.props.renderValues)}
       colSize={this.state.colSize}
       reduceEmojiSizeBy={this.state.reduceEmojiSizeBy}
+      renderValueStyle={this.props.renderValueStyle}
+      renderValues={this.props.renderValues}
     />
   );
 
@@ -236,11 +269,11 @@ export default class EmojiSelector extends Component {
         list = emojiList[name].slice(0,numberOfEmogi);
       }
       else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmogi && numberOfEmogi > 0){
-        //emogi filterations from custom array
-        const filtered = emoji.filter(e => {
+        //emogi filterations from custom array -> now initially checking selection array on top
+        const filtered = myEmogiSelection.filter(e => {
           let display = false;
           e.short_names.forEach(name => {
-            myEmogiSelection.filter(a => {
+            emoji.filter(a => {
               a.short_names.forEach(n => {
                 if (name.includes(n)) 
                 {
@@ -308,6 +341,7 @@ export default class EmojiSelector extends Component {
       showTabs,
       scrollHorizontal,
       scrollEnabled,
+      adjustRows, // props passing if there is selection array or to take default one to manage ui
       ...other
     } = this.props;
 
@@ -331,7 +365,7 @@ export default class EmojiSelector extends Component {
     const title = searchQuery !== "" ? "Search Results" : category.name;
 
     return (
-      <View style={styles.frame} {...other} onLayout={this.handleLayout}>
+      <View style={ adjustRows ? styles.handledFrame : styles.frame } {...other} onLayout={this.handleLayout}>
         <View style={styles.tabBar}>
           {showTabs && (
             <TabBar
@@ -389,15 +423,19 @@ EmojiSelector.defaultProps = {
   placeholder: "Search...",
   scrollHorizontal: false,
   numberOfEmogi: null,
-  myEmogiSelection: false,
+  myEmogiSelection: null,
   scrollEnabled: true,
-  reduceEmojiSizeBy: 0
+  reduceEmojiSizeBy: 0,
+  adjustRows: false,
+  renderValues: false
 };
 
 const styles = StyleSheet.create({
   frame: {
-    // flex: 1,
-    height: '18%',
+    flex: 1
+  },
+  handledFrame: {
+    height: "55%",
     width: "100%",
   },
   loader: {
@@ -431,7 +469,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexWrap: "wrap",
     flexDirection: "row",
-    alignItems: "flex-start"
+    alignItems: "flex-start",
   },
   sectionHeader: {
     margin: 8,
