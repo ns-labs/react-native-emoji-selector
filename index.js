@@ -101,12 +101,12 @@ const TabBar = ({ theme, activeCategory, onPress, width }) => {
   });
 };
 
-const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
+const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, renderValueStyle, renderValues,  ...other }) => (
   <TouchableOpacity
     activeOpacity={0.5}
     style={{
       width: colSize + reduceEmojiSizeBy,
-      height: colSize + 15, // to handle height of view
+      height: colSize + (renderValues ? 15 : 0), // to handle height of view
       alignItems: "center",
       justifyContent: "center"
     }}
@@ -116,9 +116,11 @@ const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
       {charFromEmojiObject(emoji)}
     </Text>
     {/* added value under the emojis */}
-    <Text maxFontSizeMultiplier={1.1} style={ emoji["selected"] == true ? styles.ratingtextSelected: styles.ratingtext}>
-      {`${emoji["value"]}`}
-    </Text>
+    {renderValues && (
+      <Text maxFontSizeMultiplier={1.1} style={emoji["selected"] == true ? renderValueStyle.ratingtextSelected : renderValueStyle.ratingtext}>
+        {`${emoji["value"]}`}
+      </Text>
+    )}
   </TouchableOpacity>
 );
 
@@ -151,7 +153,7 @@ export default class EmojiSelector extends Component {
     }
   };
 
-  handleEmojiSelect = (emoji) => {
+  handleEmojiSelect = (emoji, renderValues) => {
 
     //to save emogi in history
     if (this.props.showHistory) {
@@ -159,7 +161,7 @@ export default class EmojiSelector extends Component {
     }
 
     //to handle selected value as per myEmogiSelection array
-    if (emoji && emoji.hasOwnProperty("selected") && emoji.hasOwnProperty("value")) {
+    if (renderValues && emoji && emoji.hasOwnProperty("selected") && emoji.hasOwnProperty("value")) {
       this.state.myEmogiSelection.filter(e => {
         if (e["name"].includes(emoji["name"])) {
           if (e["selected"] == true) {
@@ -226,9 +228,11 @@ export default class EmojiSelector extends Component {
     <EmojiCell
       key={item.key}
       emoji={item.emoji}
-      onPress={() => this.handleEmojiSelect(item.emoji)}
+      onPress={() => this.handleEmojiSelect(item.emoji, this.props.renderValues)}
       colSize={this.state.colSize}
       reduceEmojiSizeBy={this.state.reduceEmojiSizeBy}
+      renderValueStyle={this.props.renderValueStyle}
+      renderValues={this.props.renderValues}
     />
   );
 
@@ -422,7 +426,8 @@ EmojiSelector.defaultProps = {
   myEmogiSelection: null,
   scrollEnabled: true,
   reduceEmojiSizeBy: 0,
-  adjustRows: false
+  adjustRows: false,
+  renderValues: false
 };
 
 const styles = StyleSheet.create({
@@ -471,33 +476,5 @@ const styles = StyleSheet.create({
     fontSize: 17,
     width: "100%",
     color: "#8F8F8F"
-  },
-  ratingtext: {
-		color: '#96A5B9',
-		fontSize: 12,
-		...Platform.select({ // https://facebook.github.io/react-native/docs/platform-specific-code
-			ios: {
-				fontFamily: 'NotoSans-Regular',
-			},
-			android: {
-				fontFamily: 'NotoSans-Regular',
-			},
-		}),
-		lineHeight: 15,
-		letterSpacing: 0.1,
-  },
-  ratingtextSelected: {
-		color: '#00A0FF',
-		fontSize: 12,
-		...Platform.select({ // https://facebook.github.io/react-native/docs/platform-specific-code
-			ios: {
-				fontFamily: 'NotoSans-Regular',
-			},
-			android: {
-				fontFamily: 'NotoSans-Regular',
-			},
-		}),
-		lineHeight: 15,
-		letterSpacing: 0.1,
-  },
+  }
 });
