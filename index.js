@@ -106,7 +106,7 @@ const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
     activeOpacity={0.5}
     style={{
       width: colSize + reduceEmojiSizeBy,
-      height: colSize,
+      height: colSize + 15, // to handle height of view
       alignItems: "center",
       justifyContent: "center"
     }}
@@ -114,6 +114,10 @@ const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, ...other }) => (
   >
     <Text style={{ color: "#FFFFFF", fontSize: colSize - 12 }}>
       {charFromEmojiObject(emoji)}
+    </Text>
+    {/* added value under the emojis */}
+    <Text maxFontSizeMultiplier={1.1} style={ emoji["selected"] == true ? styles.ratingtextSelected: styles.ratingtext}>
+      {`${emoji["value"]}`}
     </Text>
   </TouchableOpacity>
 );
@@ -147,11 +151,36 @@ export default class EmojiSelector extends Component {
     }
   };
 
-  handleEmojiSelect = emoji => {
+  handleEmojiSelect = (emoji) => {
+
+    //to save emogi in history
     if (this.props.showHistory) {
       this.addToHistoryAsync(emoji);
     }
-    this.props.onEmojiSelected(charFromEmojiObject(emoji), emoji); //emogis data added here
+
+    //to handle selected value as per myEmogiSelection array
+    if (emoji && emoji.hasOwnProperty("selected") && emoji.hasOwnProperty("value")) {
+      this.state.myEmogiSelection.filter(e => {
+        if (e["name"].includes(emoji["name"])) {
+          if (e["selected"] == true) {
+            e["selected"] = false
+            e["value"] -= 1
+          } else {
+            e["selected"] = true
+            e["value"] += 1
+          }
+        } else {
+          if (e["selected"] == true) {
+            e["selected"] = false
+            e["value"] -= 1
+          }
+        }
+      })
+    }
+
+    // sending value from lib to code
+    this.props.onEmojiSelected(charFromEmojiObject(emoji), emoji, this.state.myEmogiSelection); //emogis data added here, updated array also send if needed
+
   };
 
   handleSearch = searchQuery => {
@@ -236,11 +265,11 @@ export default class EmojiSelector extends Component {
         list = emojiList[name].slice(0,numberOfEmogi);
       }
       else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmogi && numberOfEmogi > 0){
-        //emogi filterations from custom array
-        const filtered = emoji.filter(e => {
+        //emogi filterations from custom array -> now initially checking selection array on top
+        const filtered = myEmogiSelection.filter(e => {
           let display = false;
           e.short_names.forEach(name => {
-            myEmogiSelection.filter(a => {
+            emoji.filter(a => {
               a.short_names.forEach(n => {
                 if (name.includes(n)) 
                 {
@@ -308,6 +337,7 @@ export default class EmojiSelector extends Component {
       showTabs,
       scrollHorizontal,
       scrollEnabled,
+      adjustRows, // props passing if there is selection array or to take default one to manage ui
       ...other
     } = this.props;
 
@@ -331,7 +361,7 @@ export default class EmojiSelector extends Component {
     const title = searchQuery !== "" ? "Search Results" : category.name;
 
     return (
-      <View style={styles.frame} {...other} onLayout={this.handleLayout}>
+      <View style={ adjustRows ? styles.handledFrame : styles.frame } {...other} onLayout={this.handleLayout}>
         <View style={styles.tabBar}>
           {showTabs && (
             <TabBar
@@ -389,15 +419,18 @@ EmojiSelector.defaultProps = {
   placeholder: "Search...",
   scrollHorizontal: false,
   numberOfEmogi: null,
-  myEmogiSelection: false,
+  myEmogiSelection: null,
   scrollEnabled: true,
-  reduceEmojiSizeBy: 0
+  reduceEmojiSizeBy: 0,
+  adjustRows: false
 };
 
 const styles = StyleSheet.create({
   frame: {
-    // flex: 1,
-    height: '18%',
+    flex: 1
+  },
+  handledFrame: {
+    height: "55%",
     width: "100%",
   },
   loader: {
@@ -431,12 +464,40 @@ const styles = StyleSheet.create({
     flex: 1,
     flexWrap: "wrap",
     flexDirection: "row",
-    alignItems: "flex-start"
+    alignItems: "flex-start",
   },
   sectionHeader: {
     margin: 8,
     fontSize: 17,
     width: "100%",
     color: "#8F8F8F"
-  }
+  },
+  ratingtext: {
+		color: '#96A5B9',
+		fontSize: 12,
+		...Platform.select({ // https://facebook.github.io/react-native/docs/platform-specific-code
+			ios: {
+				fontFamily: 'NotoSans-Regular',
+			},
+			android: {
+				fontFamily: 'NotoSans-Regular',
+			},
+		}),
+		lineHeight: 15,
+		letterSpacing: 0.1,
+  },
+  ratingtextSelected: {
+		color: '#00A0FF',
+		fontSize: 12,
+		...Platform.select({ // https://facebook.github.io/react-native/docs/platform-specific-code
+			ios: {
+				fontFamily: 'NotoSans-Regular',
+			},
+			android: {
+				fontFamily: 'NotoSans-Regular',
+			},
+		}),
+		lineHeight: 15,
+		letterSpacing: 0.1,
+  },
 });
