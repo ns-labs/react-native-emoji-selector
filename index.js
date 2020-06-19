@@ -163,7 +163,7 @@ export default class EmojiSelector extends Component {
     //to handle selected value as per myEmogiSelection array
     if (renderValues && emoji && emoji.hasOwnProperty("selected") && emoji.hasOwnProperty("value")) {
       this.state.myEmogiSelection.filter(e => {
-        if (e["name"].includes(emoji["name"])) {
+        if (e["short_name"].includes(emoji["short_name"])) {
           if (e["selected"] == true) {
             e["selected"] = false
             e["value"] -= 1
@@ -269,15 +269,18 @@ export default class EmojiSelector extends Component {
         list = emojiList[name].slice(0,numberOfEmogi);
       }
       else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmogi && numberOfEmogi > 0){
-        //emogi filterations from custom array -> now initially checking selection array on top
-        const filtered = myEmogiSelection.filter(e => {
+        const filtered = emoji.filter(e => {
           let display = false;
           e.short_names.forEach(name => {
-            emoji.filter(a => {
+            myEmogiSelection.filter(a => {
               a.short_names.forEach(n => {
                 if (name.includes(n)) 
                 {
-                  display = true;
+                  if(name == n){
+                    e["selected"] = a['selected']
+                    e["value"] = a['value']
+                    display = true;
+                  }
                 }
               })
             })
@@ -285,9 +288,15 @@ export default class EmojiSelector extends Component {
           return display;
         });
         list = sortEmoji(filtered).slice(0,numberOfEmogi);
+        this.props.getEmojiData(list); //to send and fetch new list and update in ui
       }
       else {
-        list = emojiList[name];
+        if(myEmogiSelection && myEmogiSelection.length == 0){
+          list = [];
+          this.setState({ isReady: false });
+        }else{
+          list = emojiList[name];
+        }
       }
       return list.map(emoji => ({ key: emoji.unified, emoji }));
     }
@@ -330,6 +339,13 @@ export default class EmojiSelector extends Component {
     }
   }
 
+  componentDidUpdate() {
+    const { myEmogiSelection } = this.props;
+    if(myEmogiSelection != null && this.state.myEmogiSelection != myEmogiSelection){
+      this.setState({ myEmogiSelection });
+    }
+  }
+
   render() {
     const {
       theme,
@@ -345,7 +361,7 @@ export default class EmojiSelector extends Component {
       ...other
     } = this.props;
 
-    const { category, colSize, isReady, searchQuery, reduceEmojiSizeBy } = this.state;
+    const { category, colSize, isReady, searchQuery } = this.state;
 
     const Searchbar = (
       <View style={styles.searchbar_container}>
