@@ -291,7 +291,12 @@ export default class EmojiSelector extends Component {
         this.props.getEmojiData(list); //to send and fetch new list and update in ui
       }
       else {
-        list = emojiList[name];
+        if(myEmogiSelection && myEmogiSelection.length == 0){
+          list = [];
+          this.setState({ isReady: false });
+        }else{
+          list = emojiList[name];
+        }
       }
       return list.map(emoji => ({ key: emoji.unified, emoji }));
     }
