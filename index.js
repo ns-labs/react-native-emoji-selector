@@ -269,7 +269,7 @@ export default class EmojiSelector extends Component {
         list = emojiList[name].slice(0,numberOfEmogi);
       }
       else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmogi && numberOfEmogi > 0){
-        const filtered = emojiList[name].filter(e => {
+        const filtered = emoji.filter(e => {
           let display = false;
           e.short_names.forEach(name => {
             myEmogiSelection.filter(a => {
