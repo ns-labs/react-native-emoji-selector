@@ -277,8 +277,9 @@ export default class EmojiSelector extends Component {
                 if (name.includes(n)) 
                 {
                   if(name == n){
-                    e["selected"] = a['selected']
-                    e["value"] = a['value']
+                    e["selected"] = a['selected'] // to add selected action in array
+                    e["value"] = a['value'] // to add selected value in array not selected then 0 or 1 if selected
+                    e["code"] = a['code'] // to add code in array
                     display = true;
                   }
                 }
