@@ -66,6 +66,7 @@ const filteredEmojis = emoji.filter(e => !e["obsoleted_by"]);
 const emojiByCategory = category =>
   filteredEmojis.filter(e => e.category === category);
 const sortEmoji = list => list.sort((a, b) => a.sort_order - b.sort_order);
+const sortEmojiByValue = list => list.sort((a, b) => b.value - a.value);
 const categoryKeys = Object.keys(Categories);
 
 const TabBar = ({ theme, activeCategory, onPress, width }) => {
@@ -288,8 +289,7 @@ export default class EmojiSelector extends Component {
           });
           return display;
         });
-        list = sortEmoji(filtered).slice(0,numberOfEmogi);
-        this.props.getEmojiData(list); //to send and fetch new list and update in ui
+        list = sortEmojiByValue(filtered).slice(0,numberOfEmogi);
       }
       else {
         if(myEmogiSelection && myEmogiSelection.length == 0){
