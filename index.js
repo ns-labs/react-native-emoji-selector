@@ -102,7 +102,7 @@ const TabBar = ({ theme, activeCategory, onPress, width }) => {
   });
 };
 
-const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, renderValueStyle, renderValues,  ...other }) => (
+const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, renderValueStyle, renderValues, maxFontSizeMultiplier,  ...other }) => (
   <TouchableOpacity
     activeOpacity={0.5}
     style={{
@@ -113,12 +113,12 @@ const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, renderValueStyle, render
     }}
     {...other}
   >
-    <Text style={{ color: "#FFFFFF", fontSize: colSize - 12 }}>
+    <Text maxFontSizeMultiplier={maxFontSizeMultiplier} style={{ color: "#FFFFFF", fontSize: colSize - 12 }}>
       {charFromEmojiObject(emoji)}
     </Text>
     {/* added value under the emojis */}
     {renderValues && (
-      <Text maxFontSizeMultiplier={1.1} style={emoji["selected"] == true ? renderValueStyle.ratingtextSelected : renderValueStyle.ratingtext}>
+      <Text maxFontSizeMultiplier={maxFontSizeMultiplier} style={emoji["selected"] == true ? renderValueStyle.ratingtextSelected : renderValueStyle.ratingtext}>
         {`${emoji["value"]}`}
       </Text>
     )}
@@ -137,7 +137,8 @@ export default class EmojiSelector extends Component {
     width: 0,
     numberOfEmojis: 0, //to decide number of emogis in row
     myEmogiSelection: null, //for array of emogis to display,
-    reduceEmojiSizeBy: 0 // to adjust Emogi size
+    reduceEmojiSizeBy: 0, // to adjust Emogi size
+    maxFontSizeMultiplier: 0
   };
 
   //
@@ -234,6 +235,7 @@ export default class EmojiSelector extends Component {
       reduceEmojiSizeBy={this.state.reduceEmojiSizeBy}
       renderValueStyle={this.props.renderValueStyle}
       renderValues={this.props.renderValues}
+      maxFontSizeMultiplier={this.props.maxFontSizeMultiplier}
     />
   );
 
@@ -332,8 +334,8 @@ export default class EmojiSelector extends Component {
   //  LIFECYCLE METHODS
   //
   componentDidMount() {
-    const { category, showHistory, numberOfEmojis, myEmogiSelection } = this.props;
-    this.setState({ category, numberOfEmojis, myEmogiSelection });
+    const { category, showHistory, numberOfEmojis, myEmogiSelection, maxFontSizeMultiplier } = this.props;
+    this.setState({ category, numberOfEmojis, myEmogiSelection, maxFontSizeMultiplier });
 
     if (showHistory) {
       this.loadHistoryAsync();
@@ -359,6 +361,7 @@ export default class EmojiSelector extends Component {
       scrollHorizontal,
       scrollEnabled,
       adjustRows, // props passing if there is selection array or to take default one to manage ui
+      maxFontSizeMultiplier,
       ...other
     } = this.props;
 
@@ -444,7 +447,8 @@ EmojiSelector.defaultProps = {
   scrollEnabled: true,
   reduceEmojiSizeBy: 0,
   adjustRows: false,
-  renderValues: false
+  renderValues: false,
+  maxFontSizeMultiplier: 0
 };
 
 const styles = StyleSheet.create({
