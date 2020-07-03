@@ -66,6 +66,7 @@ const filteredEmojis = emoji.filter(e => !e["obsoleted_by"]);
 const emojiByCategory = category =>
   filteredEmojis.filter(e => e.category === category);
 const sortEmoji = list => list.sort((a, b) => a.sort_order - b.sort_order);
+const sortEmojiByValue = list => list.sort((a, b) => b.value - a.value);
 const categoryKeys = Object.keys(Categories);
 
 const TabBar = ({ theme, activeCategory, onPress, width }) => {
@@ -134,7 +135,7 @@ export default class EmojiSelector extends Component {
     emojiList: null,
     colSize: 0,
     width: 0,
-    numberOfEmogi: 0, //to decide number of emogis in row
+    numberOfEmojis: 0, //to decide number of emogis in row
     myEmogiSelection: null, //for array of emogis to display,
     reduceEmojiSizeBy: 0 // to adjust Emogi size
   };
@@ -237,7 +238,7 @@ export default class EmojiSelector extends Component {
   );
 
   returnSectionData() {
-    const { history, emojiList, searchQuery, category, numberOfEmogi, myEmogiSelection } = this.state;
+    const { history, emojiList, searchQuery, category, numberOfEmojis, myEmogiSelection } = this.state;
     if (category === Categories.all && searchQuery === "") {
       //TODO: OPTIMIZE THIS
       let largeList = [];
@@ -264,11 +265,11 @@ export default class EmojiSelector extends Component {
         list = sortEmoji(filtered);
       } else if (name === Categories.history.name) {
         list = history;
-      }else if(!myEmogiSelection && numberOfEmogi && numberOfEmogi > 0){
+      }else if(!myEmogiSelection && numberOfEmojis && numberOfEmojis > 0){
         //normal filteration method for emogis
-        list = emojiList[name].slice(0,numberOfEmogi);
+        list = emojiList[name].slice(0,numberOfEmojis);
       }
-      else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmogi && numberOfEmogi > 0){
+      else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmojis && numberOfEmojis > 0){
         const filtered = emoji.filter(e => {
           let display = false;
           e.short_names.forEach(name => {
@@ -288,8 +289,7 @@ export default class EmojiSelector extends Component {
           });
           return display;
         });
-        list = sortEmoji(filtered).slice(0,numberOfEmogi);
-        this.props.getEmojiData(list); //to send and fetch new list and update in ui
+        list = sortEmojiByValue(filtered).slice(0,numberOfEmojis);
       }
       else {
         if(myEmogiSelection && myEmogiSelection.length == 0){
@@ -332,8 +332,8 @@ export default class EmojiSelector extends Component {
   //  LIFECYCLE METHODS
   //
   componentDidMount() {
-    const { category, showHistory, numberOfEmogi, myEmogiSelection } = this.props;
-    this.setState({ category, numberOfEmogi, myEmogiSelection });
+    const { category, showHistory, numberOfEmojis, myEmogiSelection } = this.props;
+    this.setState({ category, numberOfEmojis, myEmogiSelection });
 
     if (showHistory) {
       this.loadHistoryAsync();
@@ -439,7 +439,7 @@ EmojiSelector.defaultProps = {
   columns: 6,
   placeholder: "Search...",
   scrollHorizontal: false,
-  numberOfEmogi: null,
+  numberOfEmojis: null,
   myEmogiSelection: null,
   scrollEnabled: true,
   reduceEmojiSizeBy: 0,
