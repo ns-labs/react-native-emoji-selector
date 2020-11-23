@@ -362,6 +362,7 @@ export default class EmojiSelector extends Component {
       scrollEnabled,
       adjustRows, // props passing if there is selection array or to take default one to manage ui
       maxFontSizeMultiplier,
+      showActivityIndicator = true,
       ...other
     } = this.props;
 
@@ -418,14 +419,14 @@ export default class EmojiSelector extends Component {
                 />
               </View>
             </View>
-          ) : (
+          ) : showActivityIndicator ? (
             <View style={styles.loader} {...other}>
               <ActivityIndicator
                 size={"large"}
                 color={Platform.OS === "android" ? theme : "#000000"}
               />
             </View>
-          )}
+          ): null }
         </View>
       </View>
     );
