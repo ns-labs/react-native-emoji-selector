@@ -349,6 +349,10 @@ export default class EmojiSelector extends Component {
     }
   }
 
+  keyExtractor = (item, index) => {
+		return "" + item.key;
+	}
+
   render() {
     const {
       theme,
@@ -416,6 +420,7 @@ export default class EmojiSelector extends Component {
                   removeClippedSubviews
                   horizontal={scrollHorizontal ? true : false}
                   scrollEnabled={scrollEnabled}
+                  listKey={this.keyExtractor}
                 />
               </View>
             </View>
