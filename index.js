@@ -421,6 +421,8 @@ export default class EmojiSelector extends Component {
                   horizontal={scrollHorizontal ? true : false}
                   scrollEnabled={scrollEnabled}
                   listKey={this.keyExtractor}
+                  showsHorizontalScrollIndicator={scrollEnabled ? true : false}
+                  showsVerticalScrollIndicator={scrollEnabled ? true : false}
                 />
               </View>
             </View>
