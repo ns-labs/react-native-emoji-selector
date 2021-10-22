@@ -8,7 +8,7 @@ import {
   Platform,
   ActivityIndicator,
   AsyncStorage,
-  FlatList
+  ScrollView,
 } from "react-native";
 import emoji from "emoji-datasource";
 
@@ -223,22 +223,6 @@ export default class EmojiSelector extends Component {
     }
   };
 
-  //
-  //  RENDER METHODS
-  //
-  renderEmojiCell = ({ item }) => (
-    <EmojiCell
-      key={item.key}
-      emoji={item.emoji}
-      onPress={() => this.handleEmojiSelect(item.emoji, this.props.renderValues)}
-      colSize={this.state.colSize}
-      reduceEmojiSizeBy={this.state.reduceEmojiSizeBy}
-      renderValueStyle={this.props.renderValueStyle}
-      renderValues={this.props.renderValues}
-      maxFontSizeMultiplier={this.props.maxFontSizeMultiplier}
-    />
-  );
-
   returnSectionData() {
     const { history, emojiList, searchQuery, category, numberOfEmojis, myEmogiSelection } = this.state;
     if (category === Categories.all && searchQuery === "") {
@@ -409,21 +393,34 @@ export default class EmojiSelector extends Component {
                 {showSectionTitles && (
                   <Text style={styles.sectionHeader}>{title}</Text>
                 )}
-                <FlatList
+                <ScrollView
                   style={styles.scrollview}
-                  contentContainerStyle={{ paddingBottom: colSize }}
-                  data={this.returnSectionData()}
-                  renderItem={this.renderEmojiCell}
+                  contentContainerStyle={{ paddingBottom: colSize, flexWrap: "wrap", width: "100%" }}
                   numColumns={ scrollHorizontal ? 1 : columns}
                   keyboardShouldPersistTaps={"always"}
                   ref={scrollview => (this.scrollview = scrollview)}
                   removeClippedSubviews
-                  horizontal={scrollHorizontal ? true : false}
+                  horizontal={true}
                   scrollEnabled={scrollEnabled}
                   listKey={this.keyExtractor}
                   showsHorizontalScrollIndicator={scrollEnabled ? true : false}
                   showsVerticalScrollIndicator={scrollEnabled ? true : false}
-                />
+                >
+                  {this.returnSectionData().map((item) => {
+                    return (
+                      <EmojiCell
+                        key={item.key}
+                        emoji={item.emoji}
+                        onPress={() => this.handleEmojiSelect(item.emoji, this.props.renderValues)}
+                        colSize={this.state.colSize}
+                        reduceEmojiSizeBy={this.state.reduceEmojiSizeBy}
+                        renderValueStyle={this.props.renderValueStyle}
+                        renderValues={this.props.renderValues}
+                        maxFontSizeMultiplier={this.props.maxFontSizeMultiplier}
+                      />
+                    );
+                  })}
+                </ScrollView>
               </View>
             </View>
           ) : showActivityIndicator ? (
