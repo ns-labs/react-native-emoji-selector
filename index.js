@@ -121,7 +121,7 @@ const EmojiCell = ({
       height: isTopRated ? 20 : colSize + (renderValues ? 15 : 0), // to handle height of view
       alignItems: "center",
       justifyContent: "center",
-      marginLeft: isTopRated ? Platform.OS === "ios" ? -6 : -10 : 0,
+      marginLeft: isTopRated ? Platform.OS === "ios" ? -10 : -14 : 0,
     }}
     {...other}
   >
@@ -130,7 +130,7 @@ const EmojiCell = ({
       style={[{
         color: "#FFFFFF",
         borderRadius: 20,
-        fontSize: isTopRated ? 13 : colSize - 12,
+        fontSize: isTopRated ? 12 : colSize - 12,
       },
       isTopRated && index !== 0 ? {
         textShadowColor: 'rgba(255, 255, 255, 1)',
