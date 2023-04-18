@@ -102,18 +102,43 @@ const TabBar = ({ theme, activeCategory, onPress, width }) => {
   });
 };
 
-const EmojiCell = ({ emoji, colSize, reduceEmojiSizeBy, renderValueStyle, renderValues, maxFontSizeMultiplier,  ...other }) => (
+const EmojiCell = ({
+  emoji,
+  colSize,
+  reduceEmojiSizeBy,
+  renderValueStyle,
+  renderValues,
+  maxFontSizeMultiplier,
+  isTopRated,
+  index,
+  numberOfEmojis,
+  ...other
+}) => (
   <TouchableOpacity
     activeOpacity={0.5}
     style={{
-      width: colSize + reduceEmojiSizeBy,
-      height: colSize + (renderValues ? 15 : 0), // to handle height of view
+      width: isTopRated ? 20 : colSize + reduceEmojiSizeBy,
+      height: isTopRated ? 20 : colSize + (renderValues ? 15 : 0), // to handle height of view
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      marginLeft: isTopRated ? Platform.OS === "ios" ? -10 : -14 : 0,
     }}
     {...other}
   >
-    <Text maxFontSizeMultiplier={maxFontSizeMultiplier} style={{ color: "#FFFFFF", fontSize: colSize - 12 }}>
+    <Text
+      maxFontSizeMultiplier={maxFontSizeMultiplier}
+      style={[{
+        color: "#FFFFFF",
+        borderRadius: 20,
+        fontSize: isTopRated ? 12 : colSize - 12,
+      },
+      isTopRated && index !== 0 ? {
+        textShadowColor: 'rgba(255, 255, 255, 1)',
+        textShadowOffset: { width: 2, height: 0 },
+        textShadowRadius: 2,
+      } : null
+      ]}
+    >
       {charFromEmojiObject(emoji)}
     </Text>
     {/* added value under the emojis */}
@@ -251,19 +276,18 @@ export default class EmojiSelector extends Component {
         list = sortEmoji(filtered);
       } else if (name === Categories.history.name) {
         list = history;
-      }else if(!myEmogiSelection && numberOfEmojis && numberOfEmojis > 0){
+      } else if (!myEmogiSelection && numberOfEmojis && numberOfEmojis > 0) {
         //normal filteration method for emogis
-        list = emojiList[name].slice(0,numberOfEmojis);
+        list = emojiList[name].slice(0, numberOfEmojis);
       }
-      else if(myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmojis && numberOfEmojis > 0){
+      else if (myEmogiSelection && myEmogiSelection.length > 0 && numberOfEmojis && numberOfEmojis > 0) {
         const filtered = emoji.filter(e => {
           let display = false;
           e.short_names.forEach(name => {
             myEmogiSelection.filter(a => {
               a.short_names.forEach(n => {
-                if (name.includes(n)) 
-                {
-                  if(name == n){
+                if (name.includes(n)) {
+                  if (name == n) {
                     e["selected"] = a['selected'] // to add selected action in array
                     e["value"] = a['value'] // to add selected value in array not selected then 0 or 1 if selected
                     e["code"] = a['code'] // to add code in array
@@ -275,17 +299,22 @@ export default class EmojiSelector extends Component {
           });
           return display;
         });
-        list = sortEmojiByValue(filtered).slice(0,numberOfEmojis);
+        list = sortEmojiByValue(filtered).slice(0, numberOfEmojis);
       }
       else {
-        if(myEmogiSelection && myEmogiSelection.length == 0){
+        if (myEmogiSelection && myEmogiSelection.length == 0) {
           list = [];
           this.setState({ isReady: false });
-        }else{
+        } else {
           list = emojiList[name];
         }
       }
-      return list.map(emoji => ({ key: emoji.unified, emoji }));
+      list = list.map(emoji => ({ key: emoji.unified, emoji }))
+      if (this.props.isTopRated) {
+        // reverting back to top rated emojis for comment as flex dir is "row-reverse"
+        return list?.reverse();
+      }
+      return list;
     }
   }
 
@@ -299,7 +328,7 @@ export default class EmojiSelector extends Component {
     this.setState(
       {
         emojiList,
-        colSize: Math.floor((this.state.width / this.props.columns)-(this.props.reduceEmojiSizeBy)),
+        colSize: Math.floor((this.state.width / this.props.columns) - (this.props.reduceEmojiSizeBy)),
         reduceEmojiSizeBy: Math.floor(this.props.reduceEmojiSizeBy)
       },
       callback
@@ -328,14 +357,14 @@ export default class EmojiSelector extends Component {
 
   componentDidUpdate() {
     const { myEmogiSelection } = this.props;
-    if(myEmogiSelection != null && this.state.myEmogiSelection != myEmogiSelection){
+    if (myEmogiSelection != null && this.state.myEmogiSelection != myEmogiSelection) {
       this.setState({ myEmogiSelection });
     }
   }
 
   keyExtractor = (item, index) => {
-		return "" + item.key;
-	}
+    return "" + item.key;
+  }
 
   render() {
     const {
@@ -351,6 +380,8 @@ export default class EmojiSelector extends Component {
       adjustRows, // props passing if there is selection array or to take default one to manage ui
       maxFontSizeMultiplier,
       showActivityIndicator = true,
+      extraStyles,
+      isTopRated,
       ...other
     } = this.props;
 
@@ -374,7 +405,7 @@ export default class EmojiSelector extends Component {
     const title = searchQuery !== "" ? "Search Results" : category.name;
 
     return (
-      <View style={ adjustRows ? styles.handledFrame : styles.frame } {...other} onLayout={this.handleLayout}>
+      <View style={adjustRows ? styles.handledFrame : styles.frame} {...other} onLayout={this.handleLayout}>
         <View style={styles.tabBar}>
           {showTabs && (
             <TabBar
@@ -395,8 +426,8 @@ export default class EmojiSelector extends Component {
                 )}
                 <ScrollView
                   style={styles.scrollview}
-                  contentContainerStyle={{ paddingBottom: colSize, flexWrap: "wrap", width: "100%" }}
-                  numColumns={ scrollHorizontal ? 1 : columns}
+                  contentContainerStyle={[{ paddingBottom: colSize, flexWrap: "wrap", width: "100%" }, extraStyles ? extraStyles.scrollViewContainerStyle : null]}
+                  numColumns={scrollHorizontal ? 1 : columns}
                   keyboardShouldPersistTaps={"always"}
                   ref={scrollview => (this.scrollview = scrollview)}
                   removeClippedSubviews
@@ -406,7 +437,7 @@ export default class EmojiSelector extends Component {
                   showsHorizontalScrollIndicator={scrollEnabled ? true : false}
                   showsVerticalScrollIndicator={scrollEnabled ? true : false}
                 >
-                  {this.returnSectionData().map((item) => {
+                  {this.returnSectionData().map((item, index) => {
                     return (
                       <EmojiCell
                         key={item.key}
@@ -417,6 +448,9 @@ export default class EmojiSelector extends Component {
                         renderValueStyle={this.props.renderValueStyle}
                         renderValues={this.props.renderValues}
                         maxFontSizeMultiplier={this.props.maxFontSizeMultiplier}
+                        isTopRated={this.props.isTopRated}
+                        numberOfEmojis={this.props.numberOfEmojis}
+                        index={index}
                       />
                     );
                   })}
@@ -430,7 +464,7 @@ export default class EmojiSelector extends Component {
                 color={Platform.OS === "android" ? theme : "#000000"}
               />
             </View>
-          ): null }
+          ) : null}
         </View>
       </View>
     );
