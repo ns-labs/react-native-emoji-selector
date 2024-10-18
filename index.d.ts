@@ -40,9 +40,10 @@ declare module "react-native-emoji-selector" {
     adjustRows?: boolean;
     numberOfEmojis?: number;
     reduceEmojiSizeBy?: number;
-    renderValues?: number;
+    renderValues?: boolean;
     renderValueStyle?: any;
     maxFontSizeMultiplier?: number;
+    extraStyles?: any;
   }
 
   const EmojiSelector: React.ComponentType<EmojiSelectorProps>;
