@@ -7,9 +7,9 @@ import {
   TextInput,
   Platform,
   ActivityIndicator,
-  AsyncStorage,
   ScrollView,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import emoji from "emoji-datasource";
 
 export const Categories = {
@@ -172,7 +172,7 @@ export default class EmojiSelector extends Component {
   handleTabSelect = category => {
     if (this.state.isReady) {
       if (this.scrollview)
-        this.scrollview.scrollToOffset({ x: 0, y: 0, animated: false });
+        this.scrollview.scrollTo({ x: 0, y: 0, animated: false });
       this.setState({
         searchQuery: "",
         category
@@ -382,16 +382,19 @@ export default class EmojiSelector extends Component {
       showActivityIndicator = true,
       extraStyles,
       isTopRated,
+      allowAddEmoji,
+      renderAddEmoji,
       ...other
     } = this.props;
 
     const { category, colSize, isReady, searchQuery } = this.state;
 
     const Searchbar = (
-      <View style={styles.searchbar_container}>
+      <View style={[styles.searchbar_container, extraStyles?.searchContainer]}>
         <TextInput
-          style={styles.search}
+          style={[styles.search, extraStyles?.searchInput]}
           placeholder={placeholder}
+          placeholderTextColor="white"
           clearButtonMode="always"
           returnKeyType="done"
           autoCorrect={false}
@@ -454,6 +457,7 @@ export default class EmojiSelector extends Component {
                       />
                     );
                   })}
+                  {allowAddEmoji && renderAddEmoji()}
                 </ScrollView>
               </View>
             </View>
@@ -510,9 +514,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   searchbar_container: {
+    marginTop: 2,
     width: "100%",
     zIndex: 1,
-    backgroundColor: "rgba(255,255,255,0.75)"
+    backgroundColor: "transparent"
   },
   search: {
     ...Platform.select({
@@ -532,8 +537,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   sectionHeader: {
-    margin: 8,
-    fontSize: 17,
+    marginLeft: 8,
+    marginBottom: 4,
+    fontSize: 14,
     width: "100%",
     color: "#8F8F8F"
   }
