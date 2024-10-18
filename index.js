@@ -7,9 +7,9 @@ import {
   TextInput,
   Platform,
   ActivityIndicator,
-  AsyncStorage,
   ScrollView,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import emoji from "emoji-datasource";
 
 export const Categories = {
@@ -172,7 +172,7 @@ export default class EmojiSelector extends Component {
   handleTabSelect = category => {
     if (this.state.isReady) {
       if (this.scrollview)
-        this.scrollview.scrollToOffset({ x: 0, y: 0, animated: false });
+        this.scrollview.scrollTo({ x: 0, y: 0, animated: false });
       this.setState({
         searchQuery: "",
         category
@@ -382,6 +382,8 @@ export default class EmojiSelector extends Component {
       showActivityIndicator = true,
       extraStyles,
       isTopRated,
+      allowAddEmoji,
+      renderAddEmoji,
       ...other
     } = this.props;
 
@@ -454,6 +456,7 @@ export default class EmojiSelector extends Component {
                       />
                     );
                   })}
+                  {allowAddEmoji && renderAddEmoji()}
                 </ScrollView>
               </View>
             </View>
